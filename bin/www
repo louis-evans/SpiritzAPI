@@ -4,9 +4,11 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('spiritz-api:server');
-var http = require('http');
+const app = require('../app');
+const debug = require('debug')('spiritz-api:server');
+const http = require('http');
+const sqlite3 = require('sqlite3');
+const fs = require('fs');
 
 /**
  * Get port from environment and store in Express.
@@ -88,3 +90,27 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
+
+/**
+ * Initialse the Sqlite database.
+ * If the database doesn't exist, the .db file is created and the schema is initialised
+ */
+const database = new sqlite3.Database("./db/spiritz.db", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => 
+{ 
+  if(err) throw new Error('Error starting database! : ' + err.message);
+
+  fs.readFile("./db/spiritz.db.sql", "utf8", (err, data) => 
+  {
+    if(err) throw new Error("Can't read db creation script! : " + err.message);
+
+    database.exec(data, (err) => 
+    {
+      if(err) throw new Error('Db init script failed! : ' + rr.message);
+
+      database.close(err => 
+      {
+        if(err) throw new Error("Couldn't  close database : " + err.message);
+      });
+    });
+  });
+});

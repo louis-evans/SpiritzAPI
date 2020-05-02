@@ -1,5 +1,5 @@
 # Ignore database
-db
+db/spiritz.db
 
 package-lock.json
 
