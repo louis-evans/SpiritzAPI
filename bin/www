@@ -105,7 +105,7 @@ const database = new sqlite3.Database("./db/spiritz.db", sqlite3.OPEN_READWRITE 
 
     database.exec(data, (err) => 
     {
-      if(err) throw new Error('Db init script failed! : ' + rr.message);
+      if(err) throw new Error('Db init script failed! : ' + err.message);
     })
     .close(err => 
     {
