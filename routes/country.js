@@ -1,71 +1,60 @@
 const express = require('express');
 const sqlite3 = require('sqlite3');
 const router = express.Router();
+const dbHelper = require('../db/dbHelper');
 
-const getDatabase = (mode, callback) => {
-  return new sqlite3.Database('./db/spiritz.db', mode, callback);
-};
-
-router.get('/all', function(req, res, next) {
-
-  const db = getDatabase(sqlite3.OPEN_READONLY, (err) => {
-
-    if(err) 
+router.get('/all', function(req, res, next) 
+{
+  dbHelper.getDatabase(sqlite3.OPEN_READONLY, function (err)
+  {
+    if(err) return res.sendStatus(500).send(err.message);
+    
+    this.serialize(() => 
     {
-      res.send('error');
-      return;
-    }
-
-    db.serialize(() => 
-    {
-        db.all("SELECT CountryId, CountryName FROM Country", (err, rows) => 
+        this.all("SELECT CountryId, CountryName FROM Country", (err, rows) => 
         {
-            res.json(rows);
+          if(err) return res.sendStatus(400).send(err.message);
+
+          res.json(rows);
         })
-        .close(err => 
-        {
-            if(err) console.error('Error closing Db!', err.message);
-        });
+        .close();
     });
   });
 });
 
 router.post('/add', function(req, res, next) 
 {
-  const db = getDatabase(sqlite3.OPEN_READWRITE, (err) => {
+  dbHelper.getDatabase(sqlite3.OPEN_READWRITE, function (err)
+  {
+    if(err) return res.sendStatus(500).send(err.message);
 
-    db.run(`INSERT INTO Country(CountryName) VALUES(?)`, [req.body.name], function (err)
+    this.run(`INSERT INTO Country(CountryName) VALUES(?)`, [req.body.name], function (err)
     {
-      if (err) 
-      {
-        res.sendStatus(400);
-        return;
-      }
+      if (err) return res.sendStatus(400).send(err.message);
 
       res.json({
         CountryId: this.lastID,
         CountryName: req.body.name
       });
-
-    });
+    })
+    .close();
   });
 });
 
-router.delete('/', function(req, res, next){
+router.delete('/', function(req, res, next)
+{
+    dbHelper.getDatabase(sqlite3.OPEN_READWRITE, function (err)
+    {
+      if(err) return res.sendStatus(500).send(err.message);
 
-    const db = getDatabase(sqlite3.OPEN_READWRITE, (err) => {
-
-      db.run(`DELETE FROM Country WHERE CountryId = (?)`, [req.query['id']], function (err)
+      this.run(`DELETE FROM Country WHERE CountryId = (?)`, [req.query['id']], function (err)
       {
-        if (err) 
-        {
-          res.sendStatus(400);
-          return;
-        }
-  
-        res.send('OK');
-      });
+        if (err) return res.sendStatus(400).send(err.message);
+          
+        res.sendStatus(200);
+      })
+      .close();
     });
-})
+});
 
 module.exports = router;
