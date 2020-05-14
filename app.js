@@ -6,6 +6,7 @@ var logger = require('morgan');
 const cors = require('cors');
 
 const countryRouter = require('./routes/country');
+const spiritTypeRouter = require('./routes/spiritType');
 const spiritsRouter = require('./routes/spirits');
 
 var app = express();
@@ -22,6 +23,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/country', countryRouter);
+app.use('/spirittype', spiritTypeRouter);
 app.use('/spirit', spiritsRouter);
 
 // catch 404 and forward to error handler
